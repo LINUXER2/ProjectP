@@ -6,12 +6,13 @@ from json import dumps
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Thread
 
-from http_server import localIp
+import utils
 
 
+# socket 服务端，同步的方式返回当前时间
 def init_socket_sync():
     server = socket(family=AF_INET, type=SOCK_STREAM)
-    server.bind(('172.19.39.154', 6789))
+    server.bind((utils.get_ip_addr(), 6666))
     server.listen(512)
     print('服务器启动监听...')
     while True:
@@ -27,7 +28,7 @@ class FileTransHandler(Thread):
         self.client = client
 
     def run(self):
-        with open('baidu.png', 'rb') as file:
+        with open('res/baidu.png', 'rb') as file:
             data = b64encode(file.read()).decode('utf-8')
         my_dict = {}
         my_dict['fileName'] = 'baidu.png'
@@ -37,9 +38,10 @@ class FileTransHandler(Thread):
         self.client.close()
 
 
+# socket 服务端，异步提供数据
 def init_socket_async():
     server = socket(family=AF_INET, type=SOCK_STREAM)
-    server.bind((localIp, 6789))
+    server.bind((utils.get_ip_addr(), 7777))
     server.listen(512)
     print('服务器启动监听...')
     while True:
@@ -64,4 +66,5 @@ def init_http_server():
 
 
 if __name__ == '__main__':
-    init_http_server()
+    # init_http_server()
+    init_socket_async()

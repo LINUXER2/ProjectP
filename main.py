@@ -2,14 +2,14 @@ import random
 import time
 from base64 import b64decode
 from json import loads
-from socket import socket
+from socket import socket, AF_INET, SOCK_STREAM
 from threading import Thread
 
 from lxml import etree
 import requests
 import re
 
-from http_server import localIp
+import utils
 
 
 def print_hi(name):
@@ -34,7 +34,7 @@ def form():
 
 def download_file():
     rsp = requests.get('https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png')
-    with open('baidu.png', 'wb') as file:
+    with open('res/baidu.png', 'wb') as file:
         file.write(rsp.content)
 
 
@@ -90,9 +90,10 @@ def get_douban_xml():
             print(title_span.text, rank_span.text)
 
 
-def get_server():
+# 通过socket连接服务器（异步）
+def get_server_async():
     client = socket()
-    client.connect((localIp, 6789))
+    client.connect((utils.get_ip_addr(), 7777))
 
     in_data = bytes()
     data = client.recv(1024)
@@ -105,11 +106,27 @@ def get_server():
     print(f'my_dict {my_dict}')
     file_name = my_dict['fileName']
     file_data = my_dict['data'].encode('utf-8')
-    with open("copy.png", 'wb') as f:
+    with open("res/copy.png", 'wb') as f:
         f.write(b64decode(file_data))
     print('图片已保存')
     client.close()
 
 
+# 通过socket连接服务器（同步）
+def get_server_sync():
+    # 1.创建套接字对象并指定使用哪种传输服务
+    # family=AF_INET - IPv4地址
+    # family=AF_INET6 - IPv6地址
+    # type=SOCK_STREAM - TCP套接字
+    # type=SOCK_DGRAM - UDP套接字
+    # type=SOCK_RAW - 原始套接字
+    client = socket(family=AF_INET, type=SOCK_STREAM)
+    # 2.连接到服务器，指定ip和端口
+    client.connect((utils.get_ip_addr(), 6666))
+    print("当前时间", client.recv(1024).decode('utf-8'))
+    client.close()
+
+
 if __name__ == '__main__':
-    get_server()
+    # get_server_sync()
+    get_server_async()
